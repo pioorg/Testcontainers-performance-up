@@ -40,4 +40,64 @@ class TestIntB extends BaseIntegrationTest{
         checkJohnnyIsHere(oldDB);
         System.out.println("integration test B3");
     }
+    @Test
+    void test4() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test5() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test6() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test7() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test8() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test9() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test10() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test11() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test12() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test13() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test14() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
+    @Test
+    void test15() {
+        checkJohnnyIsHere(newDB);
+        checkJohnnyIsHere(oldDB);
+    }
 }

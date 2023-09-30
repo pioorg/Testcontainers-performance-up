@@ -21,21 +21,25 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.lifecycle.Startables;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@Testcontainers(parallel = true)
 public abstract class BaseIntegrationTest {
 
-    @Container
-    protected static MySQLContainer<?> newDB = new MySQLContainer<>("mysql:8.1");
 
-    @Container
-    protected static MySQLContainer<?> oldDB = new MySQLContainer<>("mysql:5.7");
+    protected static MySQLContainer<?> newDB;
+
+    protected static MySQLContainer<?> oldDB;
+
+    static {
+        newDB = new MySQLContainer<>("mysql:8.1");
+        oldDB = new MySQLContainer<>("mysql:5.7");
+
+        Startables.deepStart(newDB, oldDB).join();
+    }
 
     @BeforeEach
     public void prepareContainers() {
