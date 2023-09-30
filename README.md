@@ -30,3 +30,8 @@ Sure thing! We can squeeze more from our CPU! How about
     ./mvnw test '-Dtest=TestInt*' -DforkCount=4
 
 We squeezed the CPU. Can we squeeze the storage?
+If we don't do that, who will use temp filesystem?
+
+    .withTmpFs(Map.of("/var/lib/mysql", "rw")
+
+(This depends on your DB, of course.)

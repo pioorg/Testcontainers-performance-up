@@ -28,6 +28,7 @@ import org.testcontainers.utility.MountableFile;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 public abstract class BaseIntegrationTest {
 
@@ -38,8 +39,10 @@ public abstract class BaseIntegrationTest {
 
     static {
         if (Files.fileNamesIn("src/test/resources/sql/", false).isEmpty()) {
-            newDB = new MySQLContainer<>("mysql:8.1");
-            oldDB = new MySQLContainer<>("mysql:5.7");
+            newDB = new MySQLContainer<>("mysql:8.1")
+                .withTmpFs(Map.of("/var/lib/mysql", "rw"));
+            oldDB = new MySQLContainer<>("mysql:5.7")
+                .withTmpFs(Map.of("/var/lib/mysql", "rw"));
 
             Startables.deepStart(newDB, oldDB).join();
 
@@ -57,11 +60,13 @@ public abstract class BaseIntegrationTest {
         } else {
             newDB = new MySQLContainer<>("mysql:8.1")
                 .withCopyFileToContainer(
-                    MountableFile.forHostPath("src/test/resources/sql/schemaNew.sql"), "/tmp/schema.sql");
+                    MountableFile.forHostPath("src/test/resources/sql/schemaNew.sql"), "/tmp/schema.sql")
+                .withTmpFs(Map.of("/var/lib/mysql", "rw"));
 
             oldDB = new MySQLContainer<>("mysql:5.7")
                 .withCopyFileToContainer(
-                    MountableFile.forHostPath("src/test/resources/sql/schemaOld.sql"), "/tmp/schema.sql");
+                    MountableFile.forHostPath("src/test/resources/sql/schemaOld.sql"), "/tmp/schema.sql")
+                .withTmpFs(Map.of("/var/lib/mysql", "rw"));
 
             Startables.deepStart(newDB, oldDB).join();
         }
