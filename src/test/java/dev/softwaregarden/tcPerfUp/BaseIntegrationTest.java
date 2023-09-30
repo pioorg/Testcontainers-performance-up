@@ -17,11 +17,13 @@
 package dev.softwaregarden.tcPerfUp;
 
 import dev.softwaregarden.tcPerfUp.misc.DbContainerHelper;
+import org.assertj.core.util.Files;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.utility.MountableFile;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -35,20 +37,41 @@ public abstract class BaseIntegrationTest {
     protected static MySQLContainer<?> oldDB;
 
     static {
-        newDB = new MySQLContainer<>("mysql:8.1");
-        oldDB = new MySQLContainer<>("mysql:5.7");
+        if (Files.fileNamesIn("src/test/resources/sql/", false).isEmpty()) {
+            newDB = new MySQLContainer<>("mysql:8.1");
+            oldDB = new MySQLContainer<>("mysql:5.7");
 
-        Startables.deepStart(newDB, oldDB).join();
+            Startables.deepStart(newDB, oldDB).join();
+
+            DbContainerHelper.runLiquibaseMigrations(newDB, "config/liquibase/db.changelog-root.xml");
+            DbContainerHelper.runLiquibaseMigrations(oldDB, "config/liquibase/db.changelog-root.xml");
+
+            DbContainerHelper.snapshotMySQL(
+                newDB,
+                "src/test/resources/sql/schemaNew.sql",
+                "/tmp/schema.sql");
+            DbContainerHelper.snapshotMySQL(
+                oldDB,
+                "src/test/resources/sql/schemaOld.sql",
+                "/tmp/schema.sql");
+        } else {
+            newDB = new MySQLContainer<>("mysql:8.1")
+                .withCopyFileToContainer(
+                    MountableFile.forHostPath("src/test/resources/sql/schemaNew.sql"), "/tmp/schema.sql");
+
+            oldDB = new MySQLContainer<>("mysql:5.7")
+                .withCopyFileToContainer(
+                    MountableFile.forHostPath("src/test/resources/sql/schemaOld.sql"), "/tmp/schema.sql");
+
+            Startables.deepStart(newDB, oldDB).join();
+        }
+
     }
 
     @BeforeEach
-    public void prepareContainers() {
-        String command = "DROP DATABASE " + newDB.getDatabaseName() +
-            "; CREATE DATABASE " + newDB.getDatabaseName();
-        DbContainerHelper.runSqlCommand(newDB, command);
-        DbContainerHelper.runSqlCommand(oldDB, command);
-        DbContainerHelper.runLiquibaseMigrations(newDB, "config/liquibase/db.changelog-root.xml");
-        DbContainerHelper.runLiquibaseMigrations(oldDB, "config/liquibase/db.changelog-root.xml");
+    void reset() {
+        DbContainerHelper.runSql(newDB, "/tmp/schema.sql");
+        DbContainerHelper.runSql(oldDB, "/tmp/schema.sql");
     }
 
     /**
