@@ -12,4 +12,5 @@ Perhaps it's wiser to run slow tests only after fast tests pass?
 Perhaps the containers should start only once?\
 You can do that by making all `@Container` fields `static`.
 
-Next, do we really need to start containers one by one?
+Next, do we really need to start containers one by one?\
+Nope, we can make Testcontainers parallel: `@Testcontainers(parallel = true)`.

@@ -28,7 +28,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@Testcontainers
+@Testcontainers(parallel = true)
 public abstract class BaseIntegrationTest {
 
     @Container
