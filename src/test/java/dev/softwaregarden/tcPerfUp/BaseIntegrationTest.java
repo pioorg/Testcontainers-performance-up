@@ -32,13 +32,17 @@ import java.sql.SQLException;
 public abstract class BaseIntegrationTest {
 
     @Container
-    protected MySQLContainer<?> newDB = new MySQLContainer<>("mysql:8.1");
+    protected static MySQLContainer<?> newDB = new MySQLContainer<>("mysql:8.1");
 
     @Container
-    protected MySQLContainer<?> oldDB = new MySQLContainer<>("mysql:5.7");
+    protected static MySQLContainer<?> oldDB = new MySQLContainer<>("mysql:5.7");
 
     @BeforeEach
     public void prepareContainers() {
+        String command = "DROP DATABASE " + newDB.getDatabaseName() +
+            "; CREATE DATABASE " + newDB.getDatabaseName();
+        DbContainerHelper.runSqlCommand(newDB, command);
+        DbContainerHelper.runSqlCommand(oldDB, command);
         DbContainerHelper.runLiquibaseMigrations(newDB, "config/liquibase/db.changelog-root.xml");
         DbContainerHelper.runLiquibaseMigrations(oldDB, "config/liquibase/db.changelog-root.xml");
     }

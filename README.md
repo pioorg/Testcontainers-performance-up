@@ -9,4 +9,5 @@ Perhaps it's wiser to run slow tests only after fast tests pass?
 
     ./mvnw clean test '-Dtest=!TestInt*' && ./mvnw clean test '-Dtest=TestInt*'
 
-Perhaps the containers should start only once?
+Perhaps the containers should start only once?\
+You can do that by making all `@Container` fields `static`.
