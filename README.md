@@ -14,3 +14,5 @@ You can do that by making all `@Container` fields `static`.
 
 Next, do we really need to start containers one by one?\
 Nope, we can make Testcontainers parallel: `@Testcontainers(parallel = true)`.
+
+Wait, aren't we still starting containers too often?
