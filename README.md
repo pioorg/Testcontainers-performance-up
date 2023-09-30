@@ -6,3 +6,5 @@ Why don't you start with
     ./mvnw test
 
 Perhaps it's wiser to run slow tests only after fast tests pass?
+
+    ./mvnw clean test '-Dtest=!TestInt*' && ./mvnw clean test '-Dtest=TestInt*'
