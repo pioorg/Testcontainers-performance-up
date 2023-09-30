@@ -28,3 +28,5 @@ Can we do something with the knowledge we have now?\
 Sure thing! We can squeeze more from our CPU! How about
 
     ./mvnw test '-Dtest=TestInt*' -DforkCount=4
+
+We squeezed the CPU. Can we squeeze the storage?
