@@ -4,3 +4,5 @@ It's more of a guideline, to grasp some ideas and them apply them in your real p
 Why don't you start with 
 
     ./mvnw test
+
+Perhaps it's wiser to run slow tests only after fast tests pass?
