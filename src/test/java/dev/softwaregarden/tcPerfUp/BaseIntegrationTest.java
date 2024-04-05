@@ -38,6 +38,7 @@ import org.testcontainers.lifecycle.Startables;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 public abstract class BaseIntegrationTest {
 
@@ -57,6 +58,10 @@ public abstract class BaseIntegrationTest {
     protected JacksonJsonpMapper JSONP_MAPPER = new JacksonJsonpMapper();
 
     static {
+        //maybe you'd like to wrap it in a conditional or something...
+        mySQL.withTmpFs(Map.of("/var/lib/mysql", "rw"));
+        elasticsearch.withTmpFs(Map.of("/usr/share/elasticsearch/data", "rw"));
+
         Startables.deepStart(mySQL, elasticsearch).join();
     }
 

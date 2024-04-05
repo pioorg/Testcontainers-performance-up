@@ -48,3 +48,10 @@ Sure thing! We can squeeze more from our CPU (if we have more CPU)! How about
 
 ### Task 8
 We squeezed the CPU. Can we squeeze the storage?
+
+If not us, then who? (Linux only)
+
+    .withTmpFs(Map.of("/var/lib/mysql", "rw")
+    .withTmpFs(Map.of("/usr/share/elasticsearch/data", "rw"))
+
+(This depends on your DB, of course.)
