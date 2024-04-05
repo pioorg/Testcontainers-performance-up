@@ -33,3 +33,6 @@ Maybe a `static` block is even better than `static` fields.
 Do we really need to run DB migrations before every test?
 
 Nope, we can have a snapshot of the initial state in the container and simply restore it before next test.
+
+### Task 6
+What should we actually start with, before we start improving things?
