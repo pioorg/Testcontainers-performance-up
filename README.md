@@ -41,3 +41,8 @@ Establishing a baseline. And we can use JFR for that.
 
 ### Task 7
 Can we do something with the knowledge we have now?
+
+Sure thing! We can squeeze more from our CPU (if we have more CPU)! How about
+
+    ./mvnw test '-Dtest=TestInt*' -DforkCount=2
+

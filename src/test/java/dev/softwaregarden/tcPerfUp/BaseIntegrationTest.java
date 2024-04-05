@@ -28,6 +28,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
@@ -57,24 +58,43 @@ public abstract class BaseIntegrationTest {
 
     static {
         Startables.deepStart(mySQL, elasticsearch).join();
+    }
+
+    @BeforeAll
+    static void setupContainers() {
         createSnapshotsInContainers();
     }
 
     @BeforeEach
-    void resetContainersState() {
+    void resetContainersState() throws InterruptedException {
         restoreSnapshotsInContainers();
     }
 
     private static void createSnapshotsInContainers() {
-        DbContainerHelper.runLiquibaseMigrations(mySQL, "config/liquibase/db.changelog-root.xml");
-        DbContainerHelper.snapshotMySQL(mySQL, MYSQL_CONTAINER_BACKUP_LOCATION);
-        ElasticsearchContainerHelper.prepareData(elasticsearch, "/config/elasticsearch/");
-        ElasticsearchContainerHelper.snapshotES(elasticsearch, ES_REPO_LOCATION, ES_CONTAINER_BACKUP_LOCATION);
+        Thread mt = Thread.ofPlatform().start(() -> {
+            DbContainerHelper.runLiquibaseMigrations(mySQL, "config/liquibase/db.changelog-root.xml");
+            DbContainerHelper.snapshotMySQL(mySQL, MYSQL_CONTAINER_BACKUP_LOCATION);
+        });
+
+        Thread et = Thread.ofPlatform().start(() -> {
+            ElasticsearchContainerHelper.prepareData(elasticsearch, "/config/elasticsearch/");
+            ElasticsearchContainerHelper.snapshotES(elasticsearch, ES_REPO_LOCATION, ES_CONTAINER_BACKUP_LOCATION);
+        });
+
+        try {
+            mt.join(20_000);
+            et.join(10_000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static void restoreSnapshotsInContainers() {
-        DbContainerHelper.runScript(mySQL, MYSQL_CONTAINER_BACKUP_LOCATION);
-        ElasticsearchContainerHelper.restore(elasticsearch);
+    private static void restoreSnapshotsInContainers() throws InterruptedException {
+        Thread mt = Thread.ofPlatform().start(() -> DbContainerHelper.runScript(mySQL, MYSQL_CONTAINER_BACKUP_LOCATION));
+        Thread et = Thread.ofPlatform().start(() -> ElasticsearchContainerHelper.restore(elasticsearch));
+
+        mt.join(3_000);
+        et.join(1_000);
     }
 
     /**
