@@ -26,3 +26,5 @@ Nope, we can make Testcontainers start containers in parallel: `@Testcontainers(
 
 ### Task 4
 Wait, aren't we still starting containers too often?
+
+Maybe a `static` block is even better than `static` fields.

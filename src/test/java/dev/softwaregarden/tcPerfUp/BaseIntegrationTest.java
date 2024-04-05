@@ -32,26 +32,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.lifecycle.Startables;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@Testcontainers(parallel = true)
 public abstract class BaseIntegrationTest {
 
     protected static final String MYSQL_IMAGE = "mysql:8.3.0";
     protected static final String ELASTICSEARCH_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:8.13.1";
 
-    @Container
     protected static MySQLContainer<?> mySQL  = new MySQLContainer<>(MYSQL_IMAGE);
 
-    @Container
     protected static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(ELASTICSEARCH_IMAGE);
 
     protected JacksonJsonpMapper JSONP_MAPPER = new JacksonJsonpMapper();
+
+    static {
+        Startables.deepStart(mySQL, elasticsearch).join();
+    }
 
     @BeforeEach
     void prepareContainers() throws InterruptedException {

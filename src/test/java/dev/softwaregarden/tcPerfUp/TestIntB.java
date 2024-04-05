@@ -40,4 +40,34 @@ class TestIntB extends BaseIntegrationTest{
         checkJohnnyIsHere(elasticsearch);
         System.out.println("integration test B3");
     }
+    @Test
+    void test4() {
+        checkJohnnyIsHere(mySQL);
+        checkJohnnyIsHere(elasticsearch);
+    }
+    @Test
+    void test5() {
+        checkJohnnyIsHere(mySQL);
+        checkJohnnyIsHere(elasticsearch);
+    }
+    @Test
+    void test6() {
+        checkJohnnyIsHere(mySQL);
+        checkJohnnyIsHere(elasticsearch);
+    }
+    @Test
+    void test7() {
+        checkJohnnyIsHere(mySQL);
+        checkJohnnyIsHere(elasticsearch);
+    }
+    @Test
+    void test8() {
+        checkJohnnyIsHere(mySQL);
+        checkJohnnyIsHere(elasticsearch);
+    }
+    @Test
+    void test9() {
+        checkJohnnyIsHere(mySQL);
+        checkJohnnyIsHere(elasticsearch);
+    }
 }
