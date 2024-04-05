@@ -19,6 +19,7 @@
                 <version>3.12.1</version>
                 <configuration>
                     <compilerArgs>
+                        <compilerArg>--enable-preview</compilerArg>
                         <compilerArg>-Xlint:all</compilerArg>
                     </compilerArgs>
                 </configuration>
@@ -27,6 +28,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
+                    <argLine>-XX:StartFlightRecording=disk=true,dumponexit=true,filename=./recording.jfr,maxsize=1024m,maxage=2d,settings=profile,path-to-gc-roots=true</argLine>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
             </plugin>
