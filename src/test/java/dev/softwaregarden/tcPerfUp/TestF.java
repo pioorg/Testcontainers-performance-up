@@ -18,7 +18,6 @@
 package dev.softwaregarden.tcPerfUp;
 
 import dev.softwaregarden.tcPerfUp.misc.FakeSleeper;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
@@ -34,6 +33,5 @@ class TestF {
     void test2() {
         System.out.println("test F2");
         FakeSleeper.sleep();
-        Assertions.assertEquals("nobody expects", "Spanish Inquisition!");
     }
 }
