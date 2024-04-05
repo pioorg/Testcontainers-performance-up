@@ -13,3 +13,6 @@ Perhaps it's wiser to run slow tests only after fast tests pass?
 Tests can be split logically in many ways, one of them is running them separately, e.g.
 
     ./mvnw test '-Dtest=!TestInt*' && ./mvnw test '-Dtest=TestInt*'
+
+### Task 2
+Perhaps the containers should start only once?
