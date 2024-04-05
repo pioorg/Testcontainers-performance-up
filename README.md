@@ -55,3 +55,6 @@ If not us, then who? (Linux only)
     .withTmpFs(Map.of("/usr/share/elasticsearch/data", "rw"))
 
 (This depends on your DB, of course.)
+
+### Task 9
+Do we have to run any migrations at all?
