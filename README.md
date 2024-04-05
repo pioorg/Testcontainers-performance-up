@@ -38,3 +38,6 @@ Nope, we can have a snapshot of the initial state in the container and simply re
 What should we actually start with, before we start improving things?
 
 Establishing a baseline. And we can use JFR for that.
+
+### Task 7
+Can we do something with the knowledge we have now?
