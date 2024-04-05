@@ -7,3 +7,5 @@ Why don't you start with
 
     ./mvnw test
 
+### Task 1
+Perhaps it's wiser to run slow tests only after fast tests pass?
