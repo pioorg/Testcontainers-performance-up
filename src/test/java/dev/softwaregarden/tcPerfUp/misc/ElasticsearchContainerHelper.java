@@ -46,6 +46,56 @@ public interface ElasticsearchContainerHelper {
         logger.log(Level.INFO, "Finished Elasticsearch migrations");
     }
 
+    static void snapshotES(ElasticsearchContainer elasticsearch, String repoLocation, String backupLocation) {
+        new EsCurlCall("PUT", "/_snapshot/init_backup", """
+            {"type":"fs","settings":{"location":"%s"}}""".formatted(repoLocation)).makeCurlCall(elasticsearch);
+        new EsCurlCall("PUT", "/_snapshot/init_backup/snapshot_1?wait_for_completion=true", """
+            {"indices": "employees"}""").makeCurlCall(elasticsearch);
+
+        try {
+            Container.ExecResult execResult = elasticsearch.execInContainer(
+                "sh",
+                "-c",
+                "cd %s && tar -czf %s  *".formatted(repoLocation, backupLocation));
+            if (execResult.getExitCode() != 0) {
+                throw new RuntimeException("Error when packing backup: [%s] [%s]".formatted(execResult.getStdout(), execResult.getStderr()));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static void restore(ElasticsearchContainer elasticsearch) {
+        Container.ExecResult execResult;
+        try {
+            execResult = elasticsearch.execInContainer("/bin/sh", "-c", """
+                indices=$(curl -k -s -u elastic:changeme "https://localhost:9200/_cat/indices" | awk '{print $3}')
+
+                for index in $indices
+                do
+                    case "$index" in
+                        .*) ;;
+                        *)
+                            # If it's not a system index, delete it
+                            curl -k -s -u elastic:changeme -X DELETE "https://localhost:9200/$index"
+                            echo "Index [$index] deleted"
+                            ;;
+                    esac
+                done
+                                
+                curl -k -s -u elastic:changeme -X POST https://localhost:9200/_snapshot/init_backup/snapshot_1/_restore?wait_for_completion=true
+                echo "Snapshot restored"
+                         
+                """);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (execResult.getExitCode() != 0) {
+            throw new RuntimeException("Error when restoring backup: [%s] [%s]".formatted(execResult.getStdout(), execResult.getStderr()));
+        }
+    }
+
 
     private static String loadResource(String resource) {
         try (InputStream stream = ElasticsearchContainerHelper.class.getResourceAsStream(resource)) {

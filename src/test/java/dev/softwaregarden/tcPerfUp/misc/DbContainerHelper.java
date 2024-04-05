@@ -59,4 +59,48 @@ public interface DbContainerHelper {
             throw new RuntimeException("Cannot run the script: [%s] [%s]".formatted(result.getStdout(), result.getStderr()));
         }
     }
+
+    static void snapshotMySQL(MySQLContainer<?> mySQLContainer, String pathInContainer) {
+        Container.ExecResult result = null;
+        try {
+            result = mySQLContainer.execInContainer(
+                "mysqldump",
+                "-u",
+                mySQLContainer.getUsername(),
+                "-p" + mySQLContainer.getPassword(),
+                "-r",
+                pathInContainer,
+                "--add-drop-database",
+                "--compact",
+//                "--no-data",
+                "--databases",
+                mySQLContainer.getDatabaseName());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (result.getExitCode() != 0) {
+            throw new RuntimeException("Cannot prepare the DB dump");
+        }
+    }
+
+    static void runScript(MySQLContainer<?> mySQLContainer, String scriptPath) {
+        Container.ExecResult result;
+        try {
+            result = mySQLContainer.execInContainer(
+                "/bin/sh",
+                "-c",
+                "mysql -u %s -p%s -D %s < %s"
+                    .formatted(
+                        mySQLContainer.getUsername(),
+                        mySQLContainer.getPassword(),
+                        mySQLContainer.getDatabaseName(),
+                        scriptPath
+                    ));
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (result.getExitCode() != 0) {
+            throw new RuntimeException("Cannot run the script: [%s] [%s]".formatted(result.getStdout(), result.getStderr()));
+        }
+    }
 }

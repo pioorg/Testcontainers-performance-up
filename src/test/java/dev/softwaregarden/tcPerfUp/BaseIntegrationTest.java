@@ -43,23 +43,38 @@ public abstract class BaseIntegrationTest {
     protected static final String MYSQL_IMAGE = "mysql:8.3.0";
     protected static final String ELASTICSEARCH_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:8.13.1";
 
-    protected static MySQLContainer<?> mySQL  = new MySQLContainer<>(MYSQL_IMAGE);
+    protected static final String MYSQL_CONTAINER_BACKUP_LOCATION = "/tmp/schema.sql";
 
-    protected static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(ELASTICSEARCH_IMAGE);
+    protected static final String ES_CONTAINER_BACKUP_LOCATION = "/tmp/init_backup.tar.gz";
+    protected static final String ES_REPO_LOCATION = "/tmp/bad_backup_location";
+
+    protected static MySQLContainer<?> mySQL = new MySQLContainer<>(MYSQL_IMAGE);
+
+    protected static ElasticsearchContainer elasticsearch =
+        new ElasticsearchContainer(ELASTICSEARCH_IMAGE).withEnv("path.repo", ES_REPO_LOCATION);
 
     protected JacksonJsonpMapper JSONP_MAPPER = new JacksonJsonpMapper();
 
     static {
         Startables.deepStart(mySQL, elasticsearch).join();
+        createSnapshotsInContainers();
     }
 
     @BeforeEach
-    void prepareContainers() throws InterruptedException {
-        DbContainerHelper.runSqlCommand(mySQL,
-            "DROP DATABASE %s; CREATE DATABASE %s;".formatted(mySQL.getDatabaseName(), mySQL.getDatabaseName()));
-        ElasticsearchContainerHelper.deleteIndices(elasticsearch, "employees");
+    void resetContainersState() {
+        restoreSnapshotsInContainers();
+    }
+
+    private static void createSnapshotsInContainers() {
         DbContainerHelper.runLiquibaseMigrations(mySQL, "config/liquibase/db.changelog-root.xml");
+        DbContainerHelper.snapshotMySQL(mySQL, MYSQL_CONTAINER_BACKUP_LOCATION);
         ElasticsearchContainerHelper.prepareData(elasticsearch, "/config/elasticsearch/");
+        ElasticsearchContainerHelper.snapshotES(elasticsearch, ES_REPO_LOCATION, ES_CONTAINER_BACKUP_LOCATION);
+    }
+
+    private static void restoreSnapshotsInContainers() {
+        DbContainerHelper.runScript(mySQL, MYSQL_CONTAINER_BACKUP_LOCATION);
+        ElasticsearchContainerHelper.restore(elasticsearch);
     }
 
     /**
