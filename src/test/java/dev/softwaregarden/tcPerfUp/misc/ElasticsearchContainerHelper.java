@@ -55,6 +55,12 @@ public interface ElasticsearchContainerHelper {
         }
     }
 
+    static void deleteIndices(ElasticsearchContainer elasticsearch, String... indices) {
+        for (String index : indices) {
+            new EsCurlCall("DELETE", "/" + index, null).makeCurlCall(elasticsearch);
+        }
+    }
+
     record EsCurlCall(String method, String endpoint, String payload) {
         private void makeCurlCall(ElasticsearchContainer elasticsearch) {
             List<String> call = new ArrayList<>(List.of(

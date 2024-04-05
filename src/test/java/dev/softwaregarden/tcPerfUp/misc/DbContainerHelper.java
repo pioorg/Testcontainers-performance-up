@@ -22,7 +22,11 @@ import liquibase.command.CommandScope;
 import liquibase.command.CommonArgumentNames;
 import liquibase.command.core.UpdateCommandStep;
 import liquibase.exception.CommandExecutionException;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.MySQLContainer;
+
+import java.io.IOException;
 
 public interface DbContainerHelper {
 
@@ -36,6 +40,23 @@ public interface DbContainerHelper {
                 .execute();
         } catch (CommandExecutionException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    static void runSqlCommand(MySQLContainer<?> mySQLContainer, String command) {
+        Container.ExecResult result;
+        try {
+            result = mySQLContainer.execInContainer(
+                "mysql",
+                "-u", mySQLContainer.getUsername(),
+                "-p" + mySQLContainer.getPassword(),
+                "-D", mySQLContainer.getDatabaseName(),
+                "-e", command);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (result.getExitCode() != 0) {
+            throw new RuntimeException("Cannot run the script: [%s] [%s]".formatted(result.getStdout(), result.getStderr()));
         }
     }
 }

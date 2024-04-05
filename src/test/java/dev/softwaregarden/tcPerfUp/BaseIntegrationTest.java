@@ -46,15 +46,18 @@ public abstract class BaseIntegrationTest {
     protected static final String ELASTICSEARCH_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:8.13.1";
 
     @Container
-    protected MySQLContainer<?> mySQL  = new MySQLContainer<>(MYSQL_IMAGE);
+    protected static MySQLContainer<?> mySQL  = new MySQLContainer<>(MYSQL_IMAGE);
 
     @Container
-    protected ElasticsearchContainer elasticsearch = new ElasticsearchContainer(ELASTICSEARCH_IMAGE);
+    protected static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(ELASTICSEARCH_IMAGE);
 
     protected JacksonJsonpMapper JSONP_MAPPER = new JacksonJsonpMapper();
 
     @BeforeEach
     void prepareContainers() throws InterruptedException {
+        DbContainerHelper.runSqlCommand(mySQL,
+            "DROP DATABASE %s; CREATE DATABASE %s;".formatted(mySQL.getDatabaseName(), mySQL.getDatabaseName()));
+        ElasticsearchContainerHelper.deleteIndices(elasticsearch, "employees");
         DbContainerHelper.runLiquibaseMigrations(mySQL, "config/liquibase/db.changelog-root.xml");
         ElasticsearchContainerHelper.prepareData(elasticsearch, "/config/elasticsearch/");
     }
@@ -90,6 +93,7 @@ public abstract class BaseIntegrationTest {
             ResultSet resultSet = client.esql().query(ResultSetEsqlAdapter.INSTANCE, query);
             Assertions.assertTrue(resultSet.next());
             Assertions.assertEquals("John", resultSet.getString(1));
+            Assertions.assertFalse(resultSet.next());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -106,6 +110,7 @@ public abstract class BaseIntegrationTest {
                 .executeQuery("select first_name from employees where last_name = 'Doe'");
             Assertions.assertTrue(resultSet.next());
             Assertions.assertEquals("John", resultSet.getString(1));
+            Assertions.assertFalse(resultSet.next());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

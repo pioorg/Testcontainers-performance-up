@@ -16,3 +16,5 @@ Tests can be split logically in many ways, one of them is running them separatel
 
 ### Task 2
 Perhaps the containers should start only once?
+
+You can do that by making all `@Container` fields `static`. And making sure the state of the containers is cleaned between the tests.
