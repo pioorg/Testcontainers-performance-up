@@ -39,7 +39,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@Testcontainers
+@Testcontainers(parallel = true)
 public abstract class BaseIntegrationTest {
 
     protected static final String MYSQL_IMAGE = "mysql:8.3.0";
