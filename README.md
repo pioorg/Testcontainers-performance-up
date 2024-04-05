@@ -28,3 +28,6 @@ Nope, we can make Testcontainers start containers in parallel: `@Testcontainers(
 Wait, aren't we still starting containers too often?
 
 Maybe a `static` block is even better than `static` fields.
+
+### Task 5
+Do we really need to run DB migrations before every test?
