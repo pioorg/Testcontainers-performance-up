@@ -62,3 +62,6 @@ Do we have to run any migrations at all?
 Not if we cache them between test runs.
 Alternatively we could create custom image(s) and store them in local repo.
 Please remember that existence of the cache means invalidation issues.
+
+### Task 10
+Can we reuse more than just DB snapshots?
