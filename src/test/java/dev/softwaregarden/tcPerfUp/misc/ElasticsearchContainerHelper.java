@@ -111,6 +111,32 @@ public interface ElasticsearchContainerHelper {
         }
     }
 
+    static void prepareRestore(ElasticsearchContainer elasticsearch, String repoLocation, String backupLocation) {
+        Container.ExecResult execResult;
+        try {
+            execResult = elasticsearch.execInContainer("/bin/sh", "-c",
+                """
+                if [ -z "$(ls -A %s)" ]; then
+                    tar -xzf %s -C %s &&
+                    curl -k --silent -u elastic:changeme -H "Content-Type: application/json" -X PUT https://localhost:9200/_snapshot/init_backup -d '
+                    {
+                      "type": "fs",
+                      "settings": {
+                        "location": "%s"
+                      }
+                    }
+                    '
+                fi
+                """.formatted(repoLocation, backupLocation, repoLocation, repoLocation));
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (execResult.getExitCode() != 0) {
+            throw new RuntimeException("Error when preparing restore: [%s] [%s]".formatted(execResult.getStdout(), execResult.getStderr()));
+        }
+    }
+
     record EsCurlCall(String method, String endpoint, String payload) {
         private void makeCurlCall(ElasticsearchContainer elasticsearch) {
             List<String> call = new ArrayList<>(List.of(
