@@ -34,7 +34,14 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.utility.MountableFile;
 
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,10 +52,14 @@ public abstract class BaseIntegrationTest {
     protected static final String MYSQL_IMAGE = "mysql:8.3.0";
     protected static final String ELASTICSEARCH_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:8.13.1";
 
+    protected static final String HOST_LOCK_LOCATION = "src/test/resources/cache/.lock";
+
     protected static final String MYSQL_CONTAINER_BACKUP_LOCATION = "/tmp/schema.sql";
+    protected static final String MYSQL_HOST_BACKUP_LOCATION = "src/test/resources/cache/schema.sql";
 
     protected static final String ES_CONTAINER_BACKUP_LOCATION = "/tmp/init_backup.tar.gz";
     protected static final String ES_REPO_LOCATION = "/tmp/bad_backup_location";
+    protected static final String ES_HOST_BACKUP_LOCATION = "src/test/resources/cache/es_init_backup.tar.gz";
 
     protected static MySQLContainer<?> mySQL = new MySQLContainer<>(MYSQL_IMAGE);
 
@@ -62,12 +73,26 @@ public abstract class BaseIntegrationTest {
             mySQL.withTmpFs(Map.of("/var/lib/mysql", "rw"));
             elasticsearch.withTmpFs(Map.of("/usr/share/elasticsearch/data", "rw"));
         }
+
+        if (cachePresent()) {
+            mySQL.withCopyFileToContainer(
+                MountableFile.forHostPath(MYSQL_HOST_BACKUP_LOCATION), MYSQL_CONTAINER_BACKUP_LOCATION);
+            elasticsearch.withCopyFileToContainer(
+                MountableFile.forHostPath(ES_HOST_BACKUP_LOCATION), ES_CONTAINER_BACKUP_LOCATION);
+        }
+
         Startables.deepStart(mySQL, elasticsearch).join();
     }
 
     @BeforeAll
-    static void setupContainers() {
-        createSnapshotsInContainers();
+    static void setupContainers() throws InterruptedException {
+        if (!cachePresent()) {
+            createSnapshotsInContainers();
+            copySnapshotFromOneContainer();
+        } else {
+            // if we're not creating snapshot, we still need to create repo to allow restoring
+            ElasticsearchContainerHelper.prepareRestore(elasticsearch, ES_REPO_LOCATION, ES_CONTAINER_BACKUP_LOCATION);
+        }
     }
 
     @BeforeEach
@@ -100,6 +125,30 @@ public abstract class BaseIntegrationTest {
 
         mt.join(3_000);
         et.join(1_000);
+    }
+
+    private static boolean cachePresent() {
+//         return org.assertj.core.util.Files.fileNamesIn("src/test/resources/cache/", false).size() > 1;
+        try(var stream = Files.list(Path.of(HOST_LOCK_LOCATION).getParent())) {
+            return stream.anyMatch(p -> !p.endsWith(".lock"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void copySnapshotFromOneContainer() throws InterruptedException {
+        Thread ct = Thread.ofPlatform().start(() -> {
+            try (FileChannel fileChannel = FileChannel.open(Path.of(HOST_LOCK_LOCATION), StandardOpenOption.WRITE)) {
+                FileLock cacheLock = fileChannel.tryLock();
+                if (cacheLock != null) { //only when this fork obtained the lock
+                    mySQL.copyFileFromContainer(MYSQL_CONTAINER_BACKUP_LOCATION, MYSQL_HOST_BACKUP_LOCATION);
+                    elasticsearch.copyFileFromContainer(ES_CONTAINER_BACKUP_LOCATION, ES_HOST_BACKUP_LOCATION);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        ct.join(20_000);
     }
 
     /**
