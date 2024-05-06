@@ -29,6 +29,9 @@
                 <version>3.2.5</version>
                 <configuration>
                     <argLine>-XX:StartFlightRecording=disk=true,dumponexit=true,filename=./recording-${surefire.forkNumber}.jfr,maxsize=1024m,maxage=2d,settings=profile,path-to-gc-roots=true</argLine>
+                    <environmentVariables>
+                        <fork>fork_${surefire.forkNumber}</fork>
+                    </environmentVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
             </plugin>

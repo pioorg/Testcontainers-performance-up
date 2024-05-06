@@ -61,10 +61,15 @@ public abstract class BaseIntegrationTest {
     protected static final String ES_REPO_LOCATION = "/tmp/bad_backup_location";
     protected static final String ES_HOST_BACKUP_LOCATION = "src/test/resources/cache/es_init_backup.tar.gz";
 
-    protected static MySQLContainer<?> mySQL = new MySQLContainer<>(MYSQL_IMAGE).withReuse(true);
+    protected static MySQLContainer<?> mySQL =
+        new MySQLContainer<>(MYSQL_IMAGE)
+            .withReuse(true)
+            .withLabel("fork", System.getenv().getOrDefault("fork", "fork_1"));
 
     protected static ElasticsearchContainer elasticsearch =
-        new ElasticsearchContainer(ELASTICSEARCH_IMAGE).withEnv("path.repo", ES_REPO_LOCATION).withReuse(true);
+        new ElasticsearchContainer(ELASTICSEARCH_IMAGE).withEnv("path.repo", ES_REPO_LOCATION)
+            .withReuse(true)
+            .withLabel("fork", System.getenv().getOrDefault("fork", "fork_1"));
 
     protected JacksonJsonpMapper JSONP_MAPPER = new JacksonJsonpMapper();
 

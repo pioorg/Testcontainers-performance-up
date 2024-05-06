@@ -68,3 +68,4 @@ Can we reuse more than just DB snapshots?
 
 Yes, we can [`.withReuse(true)`](https://java.testcontainers.org/features/reuse/) the whole containers!
 (Don't forget though, that then you need to stop them manually, and it's not fork friendly.)
+(And please remember, they're shared between forks by default.)
